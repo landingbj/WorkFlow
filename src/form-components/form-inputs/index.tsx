@@ -44,6 +44,10 @@ export function FormInputs() {
                       onChange={field.onChange}
                       readonly={readonly}
                       hasError={Object.keys(fieldState?.errors || {}).length > 0}
+                      style={{
+                        minHeight: '72px', // 3行高，每行约24px
+                        lineHeight: '1.5', // 设置行高
+                      }}
                     />
                   )}
                   {!formComponent && (

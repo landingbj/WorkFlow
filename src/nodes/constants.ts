@@ -12,7 +12,6 @@ export enum WorkflowNodeType {
   BlockStart = 'block-start',
   BlockEnd = 'block-end',
   Comment = 'comment',
-  KNOWLEDGE_BASE = 'knowledgeBase',
-  DATABASE = 'database',
-  INTENT_RECOGNITION = 'intentRecognition',
+  KNOWLEDGE_BASE = 'knowledge-base',
+  INTENT_RECOGNITION = 'intent-recognition',
 }

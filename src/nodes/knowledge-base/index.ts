@@ -20,36 +20,37 @@ export const KnowledgeBaseNodeRegistry: FlowNodeRegistry = {
     onAdd() {
         return {
             id: `kb_${nanoid(5)}`,
-            type: 'knowledgeBase',
+            type: WorkflowNodeType.KNOWLEDGE_BASE,
             data: {
                 title: `知识库_${++index}`,
                 inputsValues: {
+                    category: {
+                        type: 'constant',
+                        content: 'default',
+                    },
                     query: {
                         type: 'constant',
                         content: '',
                     },
-                    topK: {
-                        type: 'constant',
-                        content: 3,
-                    },
                 },
                 inputs: {
                     type: 'object',
-                    required: ['query'],
+                    required: ['category', 'query'],
                     properties: {
-                        query: {
+                        category: {
                             type: 'string',
                         },
-                        topK: {
-                            type: 'number',
+                        query: {
+                            type: 'string',
                         },
                     },
                 },
                 outputs: {
                     type: 'object',
                     properties: {
-                        context: { type: 'string' },
+                        result: { type: 'string' },
                     },
+                    required: ['result'],
                 },
             },
         };

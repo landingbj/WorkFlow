@@ -9,7 +9,7 @@ import { Button, Collapsible, Tabs, Tooltip } from '@douyinfe/semi-ui';
 import { IconMinus } from '@douyinfe/semi-icons';
 
 import iconVariable from '../../../assets/icon-variable.png';
-import { GlobalVariableEditor } from './global-variable-editor';
+// import { GlobalVariableEditor } from './global-variable-editor';
 import { FullVariableList } from './full-variable-list';
 
 import styles from './index.module.less';
@@ -34,9 +34,9 @@ export function VariablePanel() {
             <Tabs.TabPane itemKey="variables" tab="变量列表">
               <FullVariableList />
             </Tabs.TabPane>
-            <Tabs.TabPane itemKey="global" tab="全局编辑器">
+            {/* <Tabs.TabPane itemKey="global" tab="全局编辑器">
               <GlobalVariableEditor />
-            </Tabs.TabPane>
+            </Tabs.TabPane> */}
           </Tabs>
         </div>
       </Collapsible>

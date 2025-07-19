@@ -12,10 +12,7 @@ import { VariablePanelLayer } from './variable-panel-layer';
 const fetchMockVariableFromRemote = async () => {
   await new Promise((resolve) => setTimeout(resolve, 1000));
   return {
-    type: 'object',
-    properties: {
-      userId: { type: 'string' },
-    },
+
   };
 };
 

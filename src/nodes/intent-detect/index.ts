@@ -20,7 +20,7 @@ export const IntentDetectNodeRegistry: FlowNodeRegistry = {
     onAdd() {
         return {
             id: `intent_${nanoid(5)}`,
-            type: 'intentRecognition',
+            type: WorkflowNodeType.INTENT_RECOGNITION,
             data: {
                 title: `意图识别_${++index}`,
                 inputsValues: {
@@ -42,7 +42,6 @@ export const IntentDetectNodeRegistry: FlowNodeRegistry = {
                     type: 'object',
                     properties: {
                         intent: { type: 'string' },
-                        confidence: { type: 'number' },
                     },
                 },
             },

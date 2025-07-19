@@ -22,6 +22,7 @@ export const NodeStatusHeaderContentStyle = styled.div`
   align-items: center;
   justify-content: space-between;
   padding: 6px;
+  cursor: pointer; /* 添加鼠标指针变化 */
 
   &-opened {
     padding-bottom: 0;

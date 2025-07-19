@@ -12,8 +12,7 @@ import { ConditionNodeRegistry } from './condition';
 import { CommentNodeRegistry } from './comment';
 import { BlockStartNodeRegistry } from './block-start';
 import { BlockEndNodeRegistry } from './block-end';
-import { KnowledgeBaseNodeRegistry } from './knowledgebase';
-import { DatabaseNodeRegistry } from './database';
+import { KnowledgeBaseNodeRegistry } from './knowledge-base';
 import { IntentDetectNodeRegistry } from './intent-detect';
 export { WorkflowNodeType } from './constants';
 
@@ -27,6 +26,5 @@ export const nodeRegistries: FlowNodeRegistry[] = [
   BlockStartNodeRegistry,
   BlockEndNodeRegistry,
   KnowledgeBaseNodeRegistry,
-  DatabaseNodeRegistry,
   IntentDetectNodeRegistry,
 ];

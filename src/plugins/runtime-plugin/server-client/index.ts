@@ -102,7 +102,7 @@ export class WorkflowRuntimeServerClient implements IRuntimeClient {
     try {
       const body = JSON.stringify(input);
       const response = await fetch(`/workflow/taskCancel`, {
-        method: 'PUT',
+        method: 'POST',
         redirect: 'follow',
         headers: {
           'Content-Type': 'application/json',

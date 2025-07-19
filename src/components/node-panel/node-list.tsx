@@ -60,6 +60,23 @@ const NodesWrap = styled.div`
   }
 `;
 
+const getNodeTypeLabel = (type: string): string => {
+  const typeLabels: Record<string, string> = {
+    'start': '开始',
+    'end': '结束',
+    'llm': '大语言模型',
+    'condition': '条件判断',
+    'loop': '循环',
+    'block-start': '块开始',
+    'block-end': '块结束',
+    'comment': '注释',
+    'knowledge-base': '知识库',
+    'intent-recognition': '意图识别',
+  };
+
+  return typeLabels[type] || type;
+};
+
 interface NodeListProps {
   onSelect: NodePanelRenderProps['onSelect'];
 }
@@ -86,7 +103,7 @@ export const NodeList: FC<NodeListProps> = (props) => {
             icon={
               <img style={{ width: 10, height: 10, borderRadius: 4 }} src={registry.info?.icon} />
             }
-            label={registry.type as string}
+            label={getNodeTypeLabel(registry.type as string)}
             onClick={(e) => handleClick(e, registry)}
           />
         ))}

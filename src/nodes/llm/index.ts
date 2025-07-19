@@ -30,25 +30,9 @@ export const LLMNodeRegistry: FlowNodeRegistry = {
       data: {
         title: `LLM_${++index}`,
         inputsValues: {
-          modelName: {
+          model: {
             type: 'constant',
-            content: 'gpt-3.5-turbo',
-          },
-          apiKey: {
-            type: 'constant',
-            content: 'sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-          },
-          apiHost: {
-            type: 'constant',
-            content: 'https://mock-ai-url/api/v3',
-          },
-          temperature: {
-            type: 'constant',
-            content: 0.5,
-          },
-          systemPrompt: {
-            type: 'constant',
-            content: '# Role\nYou are an AI assistant.\n',
+            content: 'qwen-turbo',
           },
           prompt: {
             type: 'constant',
@@ -57,32 +41,17 @@ export const LLMNodeRegistry: FlowNodeRegistry = {
         },
         inputs: {
           type: 'object',
-          required: ['modelName', 'apiKey', 'apiHost', 'temperature', 'prompt'],
+          required: ['model', 'prompt'],
           properties: {
-            modelName: {
+            model: {
               type: 'string',
-            },
-            apiKey: {
-              type: 'string',
-            },
-            apiHost: {
-              type: 'string',
-            },
-            temperature: {
-              type: 'number',
-            },
-            systemPrompt: {
-              type: 'string',
-              extra: {
-                formComponent: 'prompt-editor',
-              },
             },
             prompt: {
               type: 'string',
               extra: {
                 formComponent: 'prompt-editor',
               },
-            },
+            }
           },
         },
         outputs: {
