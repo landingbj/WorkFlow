@@ -15,7 +15,7 @@
     "tsconfig.json"
   ],
   "scripts": {
-    "build": "cross-env NODE_ENV=production rsbuild build",
+    "build": "cross-env NODE_ENV=production PUBLIC_URL=./ rsbuild build",
     "build:fast": "exit 0",
     "build:watch": "exit 0",
     "clean": "rimraf dist",

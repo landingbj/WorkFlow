@@ -22,6 +22,35 @@ export default defineConfig({
   },
   html: {
     title: '工作流编排',
+    template: './index.html',
+    inject: 'body',
+    scriptLoading: 'blocking',
+    meta: {
+      viewport: 'width=device-width, initial-scale=1.0',
+    },
+  },
+  output: {
+    distPath: {
+      js: 'static/js',
+      css: 'static/css',
+      media: 'static/media',
+      html: '',
+    },
+    filename: {
+      js: '[name].[contenthash:8].js',
+      css: '[name].[contenthash:8].css',
+      media: '[name].[contenthash:8].[ext]',
+    },
+  },
+  tools: {
+    htmlPlugin: {
+      template: './index.html',
+    },
+    rspack: {
+      output: {
+        publicPath: './',
+      },
+    },
   },
   server: {
     proxy: {
