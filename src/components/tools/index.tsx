@@ -23,6 +23,7 @@ import { FitView } from './fit-view';
 import { Comment } from './comment';
 import { AutoLayout } from './auto-layout';
 import { SaveButton } from '../save-button';
+import { FlowGenButton } from '../flow-gen/flow-gen-buttom';
 
 
 export const DemoTools = () => {
@@ -78,6 +79,7 @@ export const DemoTools = () => {
         <AddNode disabled={playground.config.readonly} />
         <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
         <SaveButton disabled={playground.config.readonly} />
+        <FlowGenButton disabled={playground.config.readonly} />
         <TestRunButton disabled={playground.config.readonly} />
       </ToolSection>
     </ToolContainer>

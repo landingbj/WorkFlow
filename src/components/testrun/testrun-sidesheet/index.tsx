@@ -3,8 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { FC, useEffect, useState } from 'react';
-
+import { FC, useEffect, useState, useRef } from 'react';
 import { WorkflowInputs, WorkflowOutputs } from '@flowgram.ai/runtime-interface';
 import { useService } from '@flowgram.ai/free-layout-editor';
 import { Button, JsonViewer, SideSheet } from '@douyinfe/semi-ui';
@@ -30,17 +29,28 @@ export const TestRunSideSheet: FC<TestRunSideSheetProps> = ({ visible, onCancel 
     }
     | undefined
   >();
+  
+  // 创建ref用于获取JsonViewer实例
+  const jsonViewerRef = useRef<JsonViewer>(null);
 
   const onTestRun = async () => {
     if (isRunning) {
       await runtimeService.taskCancel();
       return;
     }
+    
+    // 从ref中获取当前值
+    const currentValue = jsonViewerRef.current?.getValue();
+    if (currentValue) {
+      setValue(currentValue);
+    }
+    
     setResult(undefined);
     setError(undefined);
     setRunning(true);
+    
     try {
-      await runtimeService.taskRun(value);
+      await runtimeService.taskRun(currentValue || value);
     } catch (e: any) {
       setError(e.message);
     }
@@ -96,7 +106,13 @@ export const TestRunSideSheet: FC<TestRunSideSheetProps> = ({ visible, onCancel 
       >
         输入
       </div>
-      <JsonViewer showSearch={false} height={300} value={value} onChange={setValue} />
+      {/* 移除onChange，使用ref获取值 */}
+      <JsonViewer 
+        ref={jsonViewerRef}
+        showSearch={false} 
+        height={300} 
+        value={value} 
+      />
       <div
         style={{
           color: 'red',

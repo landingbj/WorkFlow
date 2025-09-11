@@ -14,4 +14,5 @@ export enum WorkflowNodeType {
   Comment = 'comment',
   KNOWLEDGE_BASE = 'knowledge-base',
   INTENT_RECOGNITION = 'intent-recognition',
+  Program = 'program',
 }

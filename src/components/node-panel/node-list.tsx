@@ -71,6 +71,7 @@ const getNodeTypeLabel = (type: string): string => {
     'block-end': '块结束',
     'comment': '注释',
     'knowledge-base': '知识库',
+    'program': '通用编程',
     'intent-recognition': '意图识别',
   };
 

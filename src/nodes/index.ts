@@ -14,6 +14,7 @@ import { BlockStartNodeRegistry } from './block-start';
 import { BlockEndNodeRegistry } from './block-end';
 import { KnowledgeBaseNodeRegistry } from './knowledge-base';
 import { IntentDetectNodeRegistry } from './intent-detect';
+import { ProgramNodeRegistry } from './program';
 export { WorkflowNodeType } from './constants';
 
 export const nodeRegistries: FlowNodeRegistry[] = [
@@ -26,5 +27,6 @@ export const nodeRegistries: FlowNodeRegistry[] = [
   BlockStartNodeRegistry,
   BlockEndNodeRegistry,
   KnowledgeBaseNodeRegistry,
+  ProgramNodeRegistry,
   IntentDetectNodeRegistry,
 ];
