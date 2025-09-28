@@ -15,4 +15,7 @@ export enum WorkflowNodeType {
   KNOWLEDGE_BASE = 'knowledge-base',
   INTENT_RECOGNITION = 'intent-recognition',
   Program = 'program',
+  API = 'api',
+  ASR = 'asr',
+  IMAGE2TEXT = 'image2text',
 }

@@ -73,6 +73,9 @@ const getNodeTypeLabel = (type: string): string => {
     'knowledge-base': '知识库',
     'program': '通用编程',
     'intent-recognition': '意图识别',
+    'api': 'api 调用',
+    'asr': '语音识别',
+    'image2text': '图转文',
   };
 
   return typeLabels[type] || type;

@@ -15,6 +15,9 @@ import { BlockEndNodeRegistry } from './block-end';
 import { KnowledgeBaseNodeRegistry } from './knowledge-base';
 import { IntentDetectNodeRegistry } from './intent-detect';
 import { ProgramNodeRegistry } from './program';
+import { APINodeRegistry } from './api';
+import { ASRNodeRegistry } from './asr';
+import { Image2TextNodeRegistry } from './image2text';
 export { WorkflowNodeType } from './constants';
 
 export const nodeRegistries: FlowNodeRegistry[] = [
@@ -29,4 +32,7 @@ export const nodeRegistries: FlowNodeRegistry[] = [
   KnowledgeBaseNodeRegistry,
   ProgramNodeRegistry,
   IntentDetectNodeRegistry,
-];
+  APINodeRegistry,
+  ASRNodeRegistry,
+  Image2TextNodeRegistry,
+];  
