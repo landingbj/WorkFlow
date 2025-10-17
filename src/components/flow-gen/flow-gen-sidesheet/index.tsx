@@ -1,4 +1,4 @@
-import { FC, useState, useRef } from 'react';
+import { FC, useState, useRef, useEffect } from 'react';
 import { SideSheet, Button, TextArea, Toast, Tabs, TabPane } from '@douyinfe/semi-ui';
 import { IconSpin } from '@douyinfe/semi-icons';
 import { useClientContext } from '@flowgram.ai/free-layout-editor';
@@ -14,7 +14,11 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
   const [loading, setLoading] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>('text');
   const clientContext = useClientContext();
-  const savedCanvasData = useRef<any>(null);
+  // Separate canvas data for each tab
+  const textCanvasData = useRef<any>(null);
+  const codeCanvasData = useRef<any>(null);
+  const isFirstCodeTab = useRef<boolean>(true);
+  const lastActiveTab = useRef<string>('text'); // Track which tab's canvas is currently displayed
 
   // 确保事件处理函数正确处理输入
   const handleInputChange = (value: string) => {
@@ -26,6 +30,14 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
     setCodeInput(value);
   };
 
+  // Detect which tab's canvas is currently displayed when opening the side sheet
+  useEffect(() => {
+    if (visible) {
+      // When opening, switch to the tab that matches the current canvas
+      setActiveTab(lastActiveTab.current);
+    }
+  }, [visible]);
+
   const handleTabChange = (key: string) => {
     if (key === 'code') {
       handleCodeTabChange();
@@ -33,28 +45,41 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
       handleTextTabChange();
     }
     setActiveTab(key);
+    lastActiveTab.current = key; // Update which tab's canvas is displayed
   };
 
   const handleCodeTabChange = () => {
-      // Switching to code flow tab - save current canvas and clear
-      savedCanvasData.current = clientContext.document.toJSON();
-      const allNodes = clientContext.document.getAllNodes();
-      // Clear all nodes except those that can't be removed
-      allNodes.forEach((node) => {
-          node.dispose();
-      });
+    // Save current text tab canvas data
+    textCanvasData.current = clientContext.document.toJSON();
+    
+    // Clear all nodes
+    const allNodes = clientContext.document.getAllNodes();
+    allNodes.forEach((node) => {
+      node.dispose();
+    });
+    
+    // Restore code tab canvas data if exists, otherwise leave empty for first time
+    if (!isFirstCodeTab.current && codeCanvasData.current) {
+      clientContext.document.renderJSON(codeCanvasData.current);
+    }
+    
+    isFirstCodeTab.current = false;
   };
 
   const handleTextTabChange = () => {
-    if (savedCanvasData.current) {
-      // First clear current nodes
-      const allNodes = clientContext.document.getAllNodes();
-      allNodes.forEach((node) => {
-        node.dispose();
-      });
+    // Save current code tab canvas data
+    codeCanvasData.current = clientContext.document.toJSON();
+    
+    // Clear all nodes
+    const allNodes = clientContext.document.getAllNodes();
+    allNodes.forEach((node) => {
+      node.dispose();
+    });
+    
+    // Restore text tab canvas data
+    if (textCanvasData.current) {
+      clientContext.document.renderJSON(textCanvasData.current);
     }
-    // Then restore saved data
-    clientContext.document.renderJSON(savedCanvasData.current);
   };
 
   const handleCodeGenerate = async () => {
@@ -77,7 +102,7 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
       }
       
       // 调用API
-      const response = await fetch('/workflow/code2FlowSchema', {
+      const response = await fetch('/coding/code2FlowSchema', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -98,9 +123,32 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
         throw new Error(errorMessage);
       }
 
-      Toast.success('流程生成成功');
-      // 刷新页面
-      window.location.reload();
+      // 检查是否有返回的流程数据
+      if (result.data) {
+        // 解析流程数据（可能是字符串形式的 JSON）
+        let flowData;
+        if (typeof result.data === 'string') {
+          flowData = JSON.parse(result.data);
+        } else {
+          flowData = result.data;
+        }
+
+        // 清空当前画布的所有节点
+        const allNodes = clientContext.document.getAllNodes();
+        allNodes.forEach((node) => {
+          node.dispose();
+        });
+
+        // 渲染新的流程到画布
+        clientContext.document.renderJSON(flowData);
+        
+        // 更新代码流程 tab 的画布数据
+        codeCanvasData.current = flowData;
+        
+        Toast.success('代码流程生成成功');
+      } else {
+        throw new Error('API 未返回流程数据');
+      }
     } catch (error) {
       console.error('生成代码流程出错:', error);
       // 显示错误信息，如果是Error对象则显示其message

@@ -59,6 +59,11 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      '/coding': {
+        target: 'http://localhost:18080',
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
 });
