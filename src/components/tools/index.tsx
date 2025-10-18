@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 
 import { useRefresh } from '@flowgram.ai/free-layout-editor';
 import { useClientContext } from '@flowgram.ai/free-layout-editor';
@@ -24,6 +24,7 @@ import { Comment } from './comment';
 import { AutoLayout } from './auto-layout';
 import { SaveButton } from '../save-button';
 import { FlowGenButton } from '../flow-gen/flow-gen-buttom';
+import { ToolbarContext } from '../../context/toolbar-context';
 
 
 export const DemoTools = () => {
@@ -31,6 +32,7 @@ export const DemoTools = () => {
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
   const [minimapVisible, setMinimapVisible] = useState(false);
+  const { toolbarVisible } = useContext(ToolbarContext);
   useEffect(() => {
     const disposable = history.undoRedoService.onChange(() => {
       setCanUndo(history.canUndo());
@@ -55,8 +57,8 @@ export const DemoTools = () => {
         <FitView />
         <MinimapSwitch minimapVisible={minimapVisible} setMinimapVisible={setMinimapVisible} />
         <Minimap visible={minimapVisible} />
-        <Readonly />
-        <Comment />
+        {toolbarVisible && <Readonly />}
+        {toolbarVisible && <Comment />}
         <Tooltip content="撤销">
           <IconButton
             type="tertiary"
@@ -75,12 +77,16 @@ export const DemoTools = () => {
             onClick={() => history.redo()}
           />
         </Tooltip>
-        <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
-        <AddNode disabled={playground.config.readonly} />
-        <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
-        <SaveButton disabled={playground.config.readonly} />
+        {toolbarVisible && (
+          <>
+            <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
+            <AddNode disabled={playground.config.readonly} />
+            <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
+            <SaveButton disabled={playground.config.readonly} />
+          </>
+        )}
         <FlowGenButton disabled={playground.config.readonly} />
-        <TestRunButton disabled={playground.config.readonly} />
+        {toolbarVisible && <TestRunButton disabled={playground.config.readonly} />}
       </ToolSection>
     </ToolContainer>
   );

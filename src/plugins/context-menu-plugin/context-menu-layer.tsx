@@ -31,6 +31,11 @@ export class ContextMenuLayer extends Layer {
   }
 
   openNodePanel(e: MouseEvent) {
+    // Don't open context menu if canvas is readonly
+    if (this.ctx.playground.config.readonly) {
+      return;
+    }
+    
     const pos = this.getPosFromMouseEvent(e);
     this.nodePanelService.callNodePanel({
       position: pos,

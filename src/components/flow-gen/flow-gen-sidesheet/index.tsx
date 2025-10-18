@@ -1,7 +1,8 @@
-import { FC, useState, useRef, useEffect } from 'react';
+import { FC, useState, useRef, useEffect, useContext } from 'react';
 import { SideSheet, Button, TextArea, Toast, Tabs, TabPane } from '@douyinfe/semi-ui';
 import { IconSpin } from '@douyinfe/semi-icons';
 import { useClientContext } from '@flowgram.ai/free-layout-editor';
+import { ToolbarContext } from '../../../context/toolbar-context';
 
 interface FlowGenSideSheetProps {
   visible: boolean;
@@ -14,6 +15,7 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
   const [loading, setLoading] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>('text');
   const clientContext = useClientContext();
+  const { setToolbarVisible } = useContext(ToolbarContext);
   // Separate canvas data for each tab
   const textCanvasData = useRef<any>(null);
   const codeCanvasData = useRef<any>(null);
@@ -30,19 +32,35 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
     setCodeInput(value);
   };
 
+  // Initialize toolbar visibility and readonly state on mount based on lastActiveTab
+  useEffect(() => {
+    const isTextTab = lastActiveTab.current === 'text';
+    setToolbarVisible(isTextTab);
+    clientContext.playground.config.readonly = !isTextTab;
+  }, [setToolbarVisible, clientContext]);
+
   // Detect which tab's canvas is currently displayed when opening the side sheet
   useEffect(() => {
     if (visible) {
       // When opening, switch to the tab that matches the current canvas
       setActiveTab(lastActiveTab.current);
+      // Set toolbar visibility and readonly state based on the active tab
+      const isTextTab = lastActiveTab.current === 'text';
+      setToolbarVisible(isTextTab);
+      clientContext.playground.config.readonly = !isTextTab;
     }
-  }, [visible]);
+    // Don't restore toolbar visibility when closing - keep based on canvas content
+  }, [visible, setToolbarVisible, clientContext]);
 
   const handleTabChange = (key: string) => {
     if (key === 'code') {
       handleCodeTabChange();
+      setToolbarVisible(false); // Hide toolbar when switching to code tab
+      clientContext.playground.config.readonly = true; // Set canvas to readonly for code flow
     } else if (key === 'text') {
       handleTextTabChange();
+      setToolbarVisible(true); // Show toolbar when switching to text tab
+      clientContext.playground.config.readonly = false; // Set canvas to editable for text flow
     }
     setActiveTab(key);
     lastActiveTab.current = key; // Update which tab's canvas is displayed
@@ -144,6 +162,9 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
         
         // 更新代码流程 tab 的画布数据
         codeCanvasData.current = flowData;
+        
+        // 设置画布为只读模式
+        clientContext.playground.config.readonly = true;
         
         Toast.success('代码流程生成成功');
       } else {

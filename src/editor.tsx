@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 
+import { useState } from 'react';
 import { EditorRenderer, FreeLayoutEditorProvider } from '@flowgram.ai/free-layout-editor';
 
 import '@flowgram.ai/free-layout-editor/index.css';
@@ -12,19 +13,24 @@ import { initialData } from './initial-data';
 import { useEditorProps } from './hooks';
 import { DemoTools } from './components/tools';
 import { SidebarProvider, SidebarRenderer } from './components/sidebar';
+import { ToolbarContext } from './context/toolbar-context';
 
 export const Editor = () => {
   const editorProps = useEditorProps(initialData, nodeRegistries);
+  const [toolbarVisible, setToolbarVisible] = useState(true);
+
   return (
     <div className="doc-free-feature-overview">
       <FreeLayoutEditorProvider {...editorProps}>
-        <SidebarProvider>
-          <div className="demo-container">
-            <EditorRenderer className="demo-editor" />
-          </div>
-          <DemoTools />
-          <SidebarRenderer />
-        </SidebarProvider>
+        <ToolbarContext.Provider value={{ toolbarVisible, setToolbarVisible }}>
+          <SidebarProvider>
+            <div className="demo-container">
+              <EditorRenderer className="demo-editor" />
+            </div>
+            <DemoTools />
+            <SidebarRenderer />
+          </SidebarProvider>
+        </ToolbarContext.Provider>
       </FreeLayoutEditorProvider>
     </div>
   );
