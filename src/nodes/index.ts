@@ -18,7 +18,6 @@ import { ProgramNodeRegistry } from './program';
 import { APINodeRegistry } from './api';
 import { ASRNodeRegistry } from './asr';
 import { Image2TextNodeRegistry } from './image2text';
-import { CodeLogicNodeRegistry } from './code-logic';
 export { WorkflowNodeType } from './constants';
 
 export const nodeRegistries: FlowNodeRegistry[] = [
@@ -36,5 +35,4 @@ export const nodeRegistries: FlowNodeRegistry[] = [
   APINodeRegistry,
   ASRNodeRegistry,
   Image2TextNodeRegistry,
-  CodeLogicNodeRegistry,
 ];  

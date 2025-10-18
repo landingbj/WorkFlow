@@ -86,7 +86,6 @@ const getNodeTypeLabel = (type: string): string => {
     'api': 'api 调用',
     'asr': '语音识别',
     'image2text': '图转文',
-    'code-logic': '代码逻辑',
   };
 
   return typeLabels[type] || type;
@@ -106,9 +105,6 @@ export const NodeList: FC<NodeListProps> = (props) => {
   // 调用API获取有效节点列表
   useEffect(() => {
     const fetchValidNodes = async () => {
-      setValidNodes(nodeRegistries.map(registry => registry.type as string));
-      setLoading(false);
-      return; // 暂时注释掉API调用，直接使用本地节点列表
       try {
         setLoading(true);
         const response = await fetch('/workflow/getValidNodes');
@@ -118,7 +114,6 @@ export const NodeList: FC<NodeListProps> = (props) => {
         }
         
         const result = await response.json();
-        
         // 检查API返回格式是否正确
         if (result.code === 0 && Array.isArray(result.data)) {
           setValidNodes(result.data);
