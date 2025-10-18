@@ -7,7 +7,19 @@ import { pluginReact } from '@rsbuild/plugin-react';
 import { pluginLess } from '@rsbuild/plugin-less';
 import { defineConfig } from '@rsbuild/core';
 
+const commonProxy = {
+  target: 'http://localhost:18080',
+  changeOrigin: true,
+  secure: false,
+};
+
 export default defineConfig({
+  server: {
+    proxy: {
+      '/workflow': commonProxy,
+      '/coding': commonProxy,
+    },
+  },
   plugins: [pluginReact(), pluginLess()],
   source: {
     entry: {
@@ -49,20 +61,6 @@ export default defineConfig({
     rspack: {
       output: {
         publicPath: './',
-      },
-    },
-  },
-  server: {
-    proxy: {
-      '/workflow': {
-        target: 'http://localhost:18080',
-        changeOrigin: true,
-        secure: false,
-      },
-      '/coding': {
-        target: 'http://localhost:18080',
-        changeOrigin: true,
-        secure: false,
       },
     },
   },

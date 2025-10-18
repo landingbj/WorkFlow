@@ -86,6 +86,7 @@ const getNodeTypeLabel = (type: string): string => {
     'api': 'api 调用',
     'asr': '语音识别',
     'image2text': '图转文',
+    'code-logic': '代码逻辑',
   };
 
   return typeLabels[type] || type;
@@ -105,6 +106,9 @@ export const NodeList: FC<NodeListProps> = (props) => {
   // 调用API获取有效节点列表
   useEffect(() => {
     const fetchValidNodes = async () => {
+      setValidNodes(nodeRegistries.map(registry => registry.type as string));
+      setLoading(false);
+      return; // 暂时注释掉API调用，直接使用本地节点列表
       try {
         setLoading(true);
         const response = await fetch('/workflow/getValidNodes');
@@ -126,7 +130,7 @@ export const NodeList: FC<NodeListProps> = (props) => {
         console.error('Failed to fetch valid nodes:', err);
         setError('获取节点列表失败，请稍后重试');
         // 出错时显示所有节点作为 fallback
-        setValidNodes(nodeRegistries.map(registry => registry.type));
+        setValidNodes(nodeRegistries.map(registry => registry.type as string));
       } finally {
         setLoading(false);
       }
@@ -168,7 +172,7 @@ export const NodeList: FC<NodeListProps> = (props) => {
         // 先过滤掉不应该在面板显示的节点
         .filter((register) => register.meta.nodePanelVisible !== false)
         // 再根据API返回的有效节点列表进行过滤
-        .filter((register) => validNodes.includes(register.type))
+        .filter((register) => validNodes.includes(register.type as string))
         .map((registry) => (
           <Node
             key={registry.type}

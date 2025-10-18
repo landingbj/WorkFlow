@@ -18,4 +18,5 @@ export enum WorkflowNodeType {
   API = 'api',
   ASR = 'asr',
   IMAGE2TEXT = 'image2text',
+  CodeLogic = 'code-logic',
 }
