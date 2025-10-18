@@ -3,11 +3,12 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 
 import { Button, Collapsible, Tabs, Tooltip } from '@douyinfe/semi-ui';
 import { IconMinus } from '@douyinfe/semi-icons';
 
+import { ToolbarContext } from '../../../context/toolbar-context';
 import iconVariable from '../../../assets/icon-variable.png';
 // import { GlobalVariableEditor } from './global-variable-editor';
 import { FullVariableList } from './full-variable-list';
@@ -16,6 +17,12 @@ import styles from './index.module.less';
 
 export function VariablePanel() {
   const [isOpen, setOpen] = useState<boolean>(false);
+  const { isCodeFlowMode } = useContext(ToolbarContext);
+
+  // Hide variable panel when in code flow mode
+  if (isCodeFlowMode) {
+    return null;
+  }
 
   return (
     <div className={styles['panel-wrapper']}>

@@ -18,11 +18,12 @@ import { ToolbarContext } from './context/toolbar-context';
 export const Editor = () => {
   const editorProps = useEditorProps(initialData, nodeRegistries);
   const [toolbarVisible, setToolbarVisible] = useState(true);
+  const [isCodeFlowMode, setIsCodeFlowMode] = useState(false);
 
   return (
     <div className="doc-free-feature-overview">
       <FreeLayoutEditorProvider {...editorProps}>
-        <ToolbarContext.Provider value={{ toolbarVisible, setToolbarVisible }}>
+        <ToolbarContext.Provider value={{ toolbarVisible, setToolbarVisible, isCodeFlowMode, setIsCodeFlowMode }}>
           <SidebarProvider>
             <div className="demo-container">
               <EditorRenderer className="demo-editor" />

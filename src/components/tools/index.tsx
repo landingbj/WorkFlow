@@ -85,7 +85,7 @@ export const DemoTools = () => {
             <SaveButton disabled={playground.config.readonly} />
           </>
         )}
-        <FlowGenButton disabled={playground.config.readonly} />
+        <FlowGenButton disabled={false} />
         {toolbarVisible && <TestRunButton disabled={playground.config.readonly} />}
       </ToolSection>
     </ToolContainer>
