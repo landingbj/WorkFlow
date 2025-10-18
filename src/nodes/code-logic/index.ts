@@ -8,6 +8,7 @@ import { nanoid } from 'nanoid';
 import { WorkflowNodeType } from '../constants';
 import { FlowNodeRegistry } from '../../typings';
 import iconProgram from '../../assets/icon-program.png';
+import { formMeta } from './form-meta';
 
 let index = 0;
 
@@ -20,39 +21,21 @@ export const CodeLogicNodeRegistry: FlowNodeRegistry = {
   meta: {
     size: {
       width: 360,
-      height: 380,
+      height: 200,
     },
+    deleteDisable: true,
+    copyDisable: true,
+    sidebarDisabled: true,
   },
+  formMeta,
+  canDelete: () => false,
   onAdd() {
     return {
       id: `code_logic_${nanoid(5)}`,
       type: WorkflowNodeType.CodeLogic,
       data: {
         title: `Code Logic_${++index}`,
-        inputsValues: {
-          code: {
-            type: 'constant',
-            content: '',
-          },
-        },
-        inputs: {
-          type: 'object',
-          required: ['code'],
-          properties: {
-            code: {
-              type: 'string',
-              extra: {
-                formComponent: 'prompt-editor',
-              },
-            },
-          },
-        },
-        outputs: {
-          type: 'object',
-          properties: {
-            result: { type: 'string' },
-          },
-        },
+        content: '代码逻辑测试'
       },
     };
   },
