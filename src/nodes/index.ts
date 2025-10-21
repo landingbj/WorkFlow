@@ -18,6 +18,10 @@ import { ProgramNodeRegistry } from './program';
 import { APINodeRegistry } from './api';
 import { ASRNodeRegistry } from './asr';
 import { Image2TextNodeRegistry } from './image2text';
+import { Image2detectNodeRegistry } from './imageDetect';
+import { AgentNodeRegistry } from './agent';
+import { DataBaseQueryNodeRegistry } from './database-query';
+import { DatabaseUpdateNodeRegistry } from './database-update';
 export { WorkflowNodeType } from './constants';
 
 export const nodeRegistries: FlowNodeRegistry[] = [
@@ -35,4 +39,8 @@ export const nodeRegistries: FlowNodeRegistry[] = [
   APINodeRegistry,
   ASRNodeRegistry,
   Image2TextNodeRegistry,
+  Image2detectNodeRegistry,
+  AgentNodeRegistry,
+  DataBaseQueryNodeRegistry,
+  DatabaseUpdateNodeRegistry,
 ];  

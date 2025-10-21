@@ -19,4 +19,8 @@ export enum WorkflowNodeType {
   ASR = 'asr',
   IMAGE2TEXT = 'image2text',
   CodeLogic = 'code-logic',
+  IMAGE2DETECT = 'image2detect',
+  AGENT = 'agent',
+  DATABASE_QUERY = 'database-query',
+  DATABASE_UPDATE = 'database-update',
 }

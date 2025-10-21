@@ -86,6 +86,10 @@ const getNodeTypeLabel = (type: string): string => {
     'api': 'api 调用',
     'asr': '语音识别',
     'image2text': '图转文',
+    'image2detect': '图片目标检测',
+    'agent': '智能体',
+    'database-query': '数据库查询',
+    'database-update': '数据库添加更新',
   };
 
   return typeLabels[type] || type;
