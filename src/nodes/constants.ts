@@ -23,4 +23,5 @@ export enum WorkflowNodeType {
   AGENT = 'agent',
   DATABASE_QUERY = 'database-query',
   DATABASE_UPDATE = 'database-update',
+  Parallel = 'parallel',
 }

@@ -4,56 +4,75 @@
  */
 
 import { nanoid } from 'nanoid';
-
 import { WorkflowNodeType } from '../constants';
 import { FlowNodeRegistry } from '../../typings';
-import iconAgent from '../../assets/icon-agent.png';
+import iconAgent from '../../assets/icon-agent.png'; // 假设存在该图标
 
 let index = 0;
+
+const getUserIdFromCookie = (): string => {
+  if (typeof document === 'undefined') {
+    // 非浏览器环境（如SSR）返回空字符串
+    return '';
+  }
+  const cookies = document.cookie.split(';');
+  for (const cookie of cookies) {
+    const [name, value] = cookie.trim().split('=');
+    if (name === 'userId') {
+      // 解码cookie值（处理特殊字符）
+      return decodeURIComponent(value);
+    }
+  }
+  return ''; // 未找到userId时返回空
+};
+
+
 export const AgentNodeRegistry: FlowNodeRegistry = {
-  type: WorkflowNodeType.AGENT,
+  type: WorkflowNodeType.AGENT, // 假设定义了 Agent 类型
   info: {
     icon: iconAgent,
-    description:
-      '调用智能体，使用变量和用户输入生成响应。',
+    description: '智能体节点',
   },
   meta: {
-    size: {
-      width: 360,
-      height: 390,
-    },
+    size: { width: 300, height: 120 },
   },
   onAdd() {
     return {
       id: `agent_${nanoid(5)}`,
-      type: 'agent',
+      type: WorkflowNodeType.AGENT,
       data: {
         title: `智能体_${++index}`,
         inputsValues: {
           agent: {
             type: 'constant',
-            content: '112',
+            content: '', // 默认选中值
           },
           query: {
             type: 'constant',
             content: '',
           },
-        },
-        inputs: {
+      },
+      inputs: {
           type: 'object',
-          required: ['agent', 'query'],
+          required: ['agent'],
           properties: {
             agent: {
               type: 'string',
+              extra: {
+                formComponent: 'select', // 指定使用 select 组件
+                fetchOptions: {
+                  url: '/agent/getAgentLabel?lagiUserId=' + getUserIdFromCookie(), // 拉取选项的接口
+                  method: 'GET',
+                },
+              },
             },
             query: {
               type: 'string',
               extra: {
                 formComponent: 'prompt-editor',
               },
-            }
-          },
-        },
+            },
+        }},
         outputs: {
           type: 'object',
           properties: {

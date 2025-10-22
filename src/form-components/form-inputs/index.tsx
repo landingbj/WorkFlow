@@ -10,6 +10,8 @@ import { FormItem } from '../form-item';
 import { Feedback } from '../feedback';
 import { JsonSchema } from '../../typings';
 import { useNodeRenderContext } from '../../hooks';
+// 导入 Select 组件
+import SelectComponent from '../select'; // 新增
 
 export function FormInputs() {
   const { readonly } = useNodeRenderContext();
@@ -24,10 +26,10 @@ export function FormInputs() {
         }
         const content = Object.keys(properties).map((key) => {
           const property = properties[key];
-
           const formComponent = property.extra?.formComponent;
 
-          const vertical = ['prompt-editor'].includes(formComponent || '');
+          // 新增：支持 select 组件的垂直布局
+          const vertical = ['prompt-editor', 'select'].includes(formComponent || '');
 
           return (
             <Field key={key} name={`inputsValues.${key}`} defaultValue={property.default}>
@@ -45,9 +47,19 @@ export function FormInputs() {
                       readonly={readonly}
                       hasError={Object.keys(fieldState?.errors || {}).length > 0}
                       style={{
-                        minHeight: '72px', // 3行高，每行约24px
-                        lineHeight: '1.5', // 设置行高
+                        minHeight: '72px',
+                        lineHeight: '1.5',
                       }}
+                    />
+                  )}
+                  {/* 新增：渲染 select 组件 */}
+                  {formComponent === 'select' && (
+                    <SelectComponent
+                      value={field.value}
+                      onChange={field.onChange}
+                      extra={property.extra}
+                      readonly={readonly}
+                      hasError={Object.keys(fieldState?.errors || {}).length > 0}
                     />
                   )}
                   {!formComponent && (

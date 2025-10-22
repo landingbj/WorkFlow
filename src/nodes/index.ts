@@ -22,6 +22,7 @@ import { Image2detectNodeRegistry } from './imageDetect';
 import { AgentNodeRegistry } from './agent';
 import { DataBaseQueryNodeRegistry } from './database-query';
 import { DatabaseUpdateNodeRegistry } from './database-update';
+import { ParallelNodeRegistry } from './parallel';
 export { WorkflowNodeType } from './constants';
 
 export const nodeRegistries: FlowNodeRegistry[] = [
@@ -43,4 +44,5 @@ export const nodeRegistries: FlowNodeRegistry[] = [
   AgentNodeRegistry,
   DataBaseQueryNodeRegistry,
   DatabaseUpdateNodeRegistry,
+  ParallelNodeRegistry,
 ];  
