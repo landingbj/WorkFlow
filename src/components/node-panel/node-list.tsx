@@ -74,18 +74,23 @@ const getNodeTypeLabel = (type: string): string => {
   const typeLabels: Record<string, string> = {
     'start': '开始',
     'end': '结束',
-    'llm': '大语言模型',
     'condition': '条件判断',
     'loop': '循环',
+    'paraller': '并行',
     'block-start': '块开始',
     'block-end': '块结束',
     'comment': '注释',
+    'llm': '大语言模型',
     'knowledge-base': '知识库',
     'program': '通用编程',
     'intent-recognition': '意图识别',
     'api': 'api 调用',
     'asr': '语音识别',
     'image2text': '图转文',
+    'image2detect': '图片目标检测',
+    'agent': '智能体',
+    'database-query': '数据库查询',
+    'database-update': '数据库添加更新',
   };
 
   return typeLabels[type] || type;
