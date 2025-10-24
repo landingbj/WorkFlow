@@ -89,6 +89,7 @@ const getNodeTypeLabel = (type: string): string => {
     'image2text': '图转文',
     'image2detect': '图片目标检测',
     'agent': '智能体',
+    'mcp-agent': 'MCP服务智能体',
     'database-query': '数据库查询',
     'database-update': '数据库添加更新',
   };

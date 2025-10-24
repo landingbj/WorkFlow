@@ -23,26 +23,28 @@ import { AgentNodeRegistry } from './agent';
 import { DataBaseQueryNodeRegistry } from './database-query';
 import { DatabaseUpdateNodeRegistry } from './database-update';
 import { ParallelNodeRegistry } from './parallel';
+import { McpAgentNodeRegistry } from './mcp';
 export { WorkflowNodeType } from './constants';
 
 export const nodeRegistries: FlowNodeRegistry[] = [
   ConditionNodeRegistry,
   StartNodeRegistry,
   EndNodeRegistry,
-  LLMNodeRegistry,
   LoopNodeRegistry,
+  ParallelNodeRegistry,
   CommentNodeRegistry,
   BlockStartNodeRegistry,
   BlockEndNodeRegistry,
   KnowledgeBaseNodeRegistry,
-  ProgramNodeRegistry,
   IntentDetectNodeRegistry,
+  DataBaseQueryNodeRegistry,
+  DatabaseUpdateNodeRegistry,
   APINodeRegistry,
-  ASRNodeRegistry,
+  ProgramNodeRegistry,
+  LLMNodeRegistry,
   Image2TextNodeRegistry,
   Image2detectNodeRegistry,
   AgentNodeRegistry,
-  DataBaseQueryNodeRegistry,
-  DatabaseUpdateNodeRegistry,
-  ParallelNodeRegistry,
-];  
+  McpAgentNodeRegistry,
+  ASRNodeRegistry,
+];
