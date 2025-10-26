@@ -32,7 +32,7 @@ export const DemoTools = () => {
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
   const [minimapVisible, setMinimapVisible] = useState(false);
-  const { toolbarVisible } = useContext(ToolbarContext);
+  const { toolbarVisible, isCodeFlowMode } = useContext(ToolbarContext);
   useEffect(() => {
     const disposable = history.undoRedoService.onChange(() => {
       setCanUndo(history.canUndo());
@@ -51,7 +51,7 @@ export const DemoTools = () => {
     <ToolContainer className="demo-free-layout-tools">
       <ToolSection>
         <Interactive />
-        <AutoLayout />
+        {!isCodeFlowMode && <AutoLayout />}
         <SwitchLine />
         <ZoomSelect />
         <FitView />

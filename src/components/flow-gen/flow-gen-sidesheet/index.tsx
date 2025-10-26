@@ -315,10 +315,6 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
         clientContext.playground.config.readonly = true;
         setIsCodeFlowMode(true);
         
-        // 清空文件列表和知识库选择
-        setFileList([]);
-        setKnowledgeBase('');
-        
         Toast.success('代码流程生成成功');
       } else {
         throw new Error('API 未返回流程数据');
