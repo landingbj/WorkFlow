@@ -24,4 +24,5 @@ export enum WorkflowNodeType {
   DATABASE_QUERY = 'database-query',
   DATABASE_UPDATE = 'database-update',
   Parallel = 'parallel',
+  MCP_AGENT = 'mcp-agent',
 }
