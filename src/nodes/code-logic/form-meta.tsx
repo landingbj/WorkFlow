@@ -52,7 +52,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
             padding: '16px',
             fontSize: '14px',
             color: '#666',
-            textAlign: 'center',
+            textAlign: 'left',
             backgroundColor: '#f5f5f5',
             borderRadius: '4px',
             userSelect: 'none',

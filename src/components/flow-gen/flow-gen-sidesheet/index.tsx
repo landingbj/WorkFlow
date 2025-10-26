@@ -1,7 +1,7 @@
 import { FC, useState, useRef, useEffect, useContext } from 'react';
 import { SideSheet, Button, TextArea, Toast, Tabs, TabPane, Upload, Select, Modal, Pagination } from '@douyinfe/semi-ui';
 import { IconSpin, IconEdit, IconUpload } from '@douyinfe/semi-icons';
-import { useClientContext } from '@flowgram.ai/free-layout-editor';
+import { useClientContext, usePlaygroundTools } from '@flowgram.ai/free-layout-editor';
 import { ToolbarContext } from '../../../context/toolbar-context';
 
 interface FlowGenSideSheetProps {
@@ -21,13 +21,40 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [pageSize] = useState<number>(5);
+  const [userId, setUserId] = useState<string>('');
+  const [region, setRegion] = useState<string>('');
   const clientContext = useClientContext();
+  const tools = usePlaygroundTools();
   const { setToolbarVisible, setIsCodeFlowMode } = useContext(ToolbarContext);
   // Separate canvas data for each tab
   const textCanvasData = useRef<any>(null);
   const codeCanvasData = useRef<any>(null);
   const isFirstCodeTab = useRef<boolean>(true);
   const lastActiveTab = useRef<string>('text'); // Track which tab's canvas is currently displayed
+
+  // Fetch user info from agentId
+  const fetchUserInfo = async () => {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const agentId = urlParams.get('agentId');
+      
+      if (!agentId) {
+        return;
+      }
+
+      const response = await fetch(`/knowledge/getBasicInfo?agentId=${agentId}`);
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.data && result.data.userId && result.data.region) {
+          setUserId(result.data.userId);
+          setRegion(result.data.region);
+        }
+      }
+    } catch (error) {
+      console.error('获取用户信息失败:', error);
+    }
+  };
 
   // 确保事件处理函数正确处理输入
   const handleInputChange = (value: string) => {
@@ -78,7 +105,10 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
         return;
       }
 
-      const userId = '688771';
+      if (!userId) {
+        console.error('userId 未设置');
+        return;
+      }
       
       const url = `/uploadFile/getUploadFileList?lagiUserId=${userId}&pageNumber=${page}&category=${knowledgeBase}&pageSize=${pageSize}&knowledgeBaseId=${selectedKb.id}`;
       
@@ -120,7 +150,11 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
         return;
       }
 
-      const userId = '688771'; // You may need to get this from URL or context
+      if (!userId) {
+        Toast.error('userId 未设置');
+        return;
+      }
+
       const knowledgeBaseId = selectedKb.id;
       
       const url = `/uploadFile/uploadLearningFile?category=${knowledgeBase}&userId=${userId}&knowledgeBaseId=${knowledgeBaseId}`;
@@ -154,11 +188,20 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
     }
   };
 
+  // Fetch user info on mount
+  useEffect(() => {
+    fetchUserInfo();
+  }, []);
+
   // Fetch knowledge base options on mount
   useEffect(() => {
     const fetchKnowledgeBases = async () => {
+      if (!userId || !region) {
+        return;
+      }
+
       try {
-        const response = await fetch('/knowledge/getList?userId=688771&region=unicom');
+        const response = await fetch(`/knowledge/getList?userId=${userId}&region=${region}`);
         if (response.ok) {
           const result = await response.json();
           if (result.data && Array.isArray(result.data)) {
@@ -182,7 +225,7 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
       }
     };
     fetchKnowledgeBases();
-  }, []);
+  }, [userId, region]);
 
   // Initialize toolbar visibility and readonly state on mount based on lastActiveTab
   useEffect(() => {
@@ -314,6 +357,9 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
         // 设置画布为只读模式和代码流程模式
         clientContext.playground.config.readonly = true;
         setIsCodeFlowMode(true);
+        
+        // 自动布局
+        await tools.autoLayout();
         
         Toast.success('代码流程生成成功');
       } else {
@@ -489,9 +535,10 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
                 fileList={fileList}
                 onChange={handleFileChange}
                 beforeUpload={() => false}
+                accept=".js,.jsx,.ts,.tsx,.py,.java,.cpp,.c,.h,.hpp,.cs,.php,.rb,.go,.rs,.swift,.kt,.scala,.js,.jsx,.sh,.bash,.bat,.yml,.yaml,.json,.xml,.html,.css,.vue,.jsx,.tsx,.sql,.md,.txt"
                 draggable
                 dragMainText="点击上传文件或拖拽文件到这里"
-                dragSubText="支持上传多个文件"
+                dragSubText="支持上传代码文件（.js, .py, .java, .ts, .go 等）"
                 className="custom-upload-file-list"
               />
               <style>{`
@@ -544,6 +591,7 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
             customRequest={({ file }) => {
               handleKbFileUpload(file.fileInstance);
             }}
+            accept=".pdf,.doc,.docx,.txt"
             showUploadList={false}
           >
             <Button
