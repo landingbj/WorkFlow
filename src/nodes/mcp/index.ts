@@ -13,7 +13,7 @@ let index = 0;
 
 export const McpAgentNodeRegistry: FlowNodeRegistry = {
   type: WorkflowNodeType.MCP_AGENT, // 假设定义了 McpAgent 类型
-  info: {
+  info: { 
     icon: iconMcpAgent,
     description: 'mcp智能体节点',
   },
