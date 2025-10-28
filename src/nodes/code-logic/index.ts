@@ -26,6 +26,7 @@ export const CodeLogicNodeRegistry: FlowNodeRegistry = {
     deleteDisable: true,
     copyDisable: true,
     sidebarDisabled: true,
+    nodePanelVisible: false,
   },
   formMeta,
   canDelete: () => false,

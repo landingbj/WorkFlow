@@ -18,6 +18,8 @@ export default defineConfig({
     proxy: {
       '/workflow': commonProxy,
       '/coding': commonProxy,
+      '/knowledge': commonProxy,
+      '/uploadFile': commonProxy,
     },
   },
   plugins: [pluginReact(), pluginLess()],

@@ -23,6 +23,7 @@ import { AgentNodeRegistry } from './agent';
 import { DataBaseQueryNodeRegistry } from './database-query';
 import { DatabaseUpdateNodeRegistry } from './database-update';
 import { ParallelNodeRegistry } from './parallel';
+import { CodeLogicNodeRegistry } from './code-logic';
 import { McpAgentNodeRegistry } from './mcp';
 export { WorkflowNodeType } from './constants';
 
@@ -47,4 +48,5 @@ export const nodeRegistries: FlowNodeRegistry[] = [
   AgentNodeRegistry,
   McpAgentNodeRegistry,
   ASRNodeRegistry,
+  CodeLogicNodeRegistry,
 ];
