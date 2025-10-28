@@ -450,14 +450,14 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
         // 自动布局
         await tools.autoLayout();
         
-        Toast.success('代码流程生成成功');
+        Toast.success('抽取流程成功');
       } else {
         throw new Error('API 未返回流程数据');
       }
     } catch (error) {
-      console.error('生成代码流程出错:', error);
+      console.error('抽取流程出错:', error);
       // 显示错误信息，如果是Error对象则显示其message
-      const errorMessage = error instanceof Error ? error.message : '生成代码流程失败，请重试';
+      const errorMessage = error instanceof Error ? error.message : '抽取流程失败，请重试';
       Toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -682,7 +682,7 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
               </div>
             </div>
           </TabPane>
-          <TabPane tab="代码流程" itemKey="code">
+          <TabPane tab="抽取流程" itemKey="code">
             {/* Knowledge Base Selector */}
             <div
               style={{
@@ -746,7 +746,7 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
               `}</style>
             </div>
             <div style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
-              提示：上传代码文件，选择知识库后生成代码流程
+              提示：上传代码文件，选择知识库后抽取代码流程
             </div>
             <Button
               onClick={handleCodeGenerate}
@@ -760,7 +760,7 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
                 height: '40px',
               }}
             >
-              生成代码流程
+              抽取流程
             </Button>
           </TabPane>
         </Tabs>
