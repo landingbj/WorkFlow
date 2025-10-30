@@ -46,6 +46,7 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
   const [pageSize] = useState<number>(5);
   const [userId, setUserId] = useState<string>('');
   const [region, setRegion] = useState<string>('');
+  const [codeDescription, setCodeDescription] = useState<string>('');
 
   const clientContext = useClientContext();
   const tools = usePlaygroundTools();
@@ -399,6 +400,9 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
       // 准备上传的文件数据
       const formData = new FormData();
       formData.append('knowledgeBase', knowledgeBase);
+      if (codeDescription.trim()) {
+        formData.append('description', codeDescription.trim());
+      }
       fileList.forEach((file) => {
         if (file.fileInstance) {
           formData.append('files', file.fileInstance);
@@ -417,7 +421,7 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
       // 检查响应状态和返回的status字段
       if (!response.ok || result.status === 'failed') {
         // 提取错误信息，如果有
-        const errorMessage = result.message || '生成流程失败';
+        const errorMessage = result.msg || '生成流程失败';
         throw new Error(errorMessage);
       }
 
@@ -748,6 +752,25 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
             <div style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
               提示：上传代码文件，选择知识库后抽取代码流程
             </div>
+            
+            {/* Optional Description */}
+            <div
+              style={{
+                fontSize: '15px',
+                fontWeight: '500',
+                marginBottom: '10px',
+                color: '#333',
+              }}
+            >
+              流程描述（可选）
+            </div>
+            <TextArea
+              placeholder="请输入对代码流程的描述，有助于抽取更准确的流程..."
+              style={{ height: 100, marginBottom: 16 }}
+              value={codeDescription}
+              onChange={(value) => setCodeDescription(value)}
+            />
+            
             <Button
               onClick={handleCodeGenerate}
               loading={loading}
