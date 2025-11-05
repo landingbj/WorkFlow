@@ -92,6 +92,16 @@ const getNodeTypeLabel = (type: string): string => {
     'mcp-agent': 'MCP服务智能体',
     'database-query': '数据库查询',
     'database-update': '数据库添加更新',
+    'text2image': '文生图',
+    'tts': '语音合成',
+    'translate': '文本翻译',
+    'ocr': 'OCR识别',
+    'text2video': '文生视频',
+    'image2video': '图生视频',
+    'image2enhance': '图像增强',
+    'video2enhance': '视频增强',
+    'video2track': '视频追踪',
+    'sensitive': '敏感词过滤',
   };
 
   return typeLabels[type] || type;
