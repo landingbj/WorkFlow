@@ -25,6 +25,16 @@ import { DatabaseUpdateNodeRegistry } from './database-update';
 import { ParallelNodeRegistry } from './parallel';
 import { CodeLogicNodeRegistry } from './code-logic';
 import { McpAgentNodeRegistry } from './mcp';
+import { Text2ImageNodeRegistry } from './text2image';
+import { TTSNodeRegistry } from './tts';
+import { TranslateNodeRegistry } from './translate';
+import { OcrNodeRegistry } from './ocr';
+import { Text2VideoNodeRegistry } from './text2video';
+import { Image2VideoNodeRegistry } from './image2video';
+import { Image2EnhanceNodeRegistry } from './image2enhance';
+import { Video2EnhanceNodeRegistry } from './video2enhance';
+import { Video2TrackNodeRegistry } from './video2track';
+import { SensitiveNodeRegistry } from './sensitive';
 export { WorkflowNodeType } from './constants';
 
 export const nodeRegistries: FlowNodeRegistry[] = [
@@ -49,4 +59,14 @@ export const nodeRegistries: FlowNodeRegistry[] = [
   McpAgentNodeRegistry,
   ASRNodeRegistry,
   CodeLogicNodeRegistry,
+  Text2ImageNodeRegistry,
+  TTSNodeRegistry,
+  TranslateNodeRegistry,
+  OcrNodeRegistry,
+  Text2VideoNodeRegistry,
+  Image2VideoNodeRegistry,
+  Image2EnhanceNodeRegistry,
+  Video2EnhanceNodeRegistry,
+  Video2TrackNodeRegistry,
+  SensitiveNodeRegistry,
 ];

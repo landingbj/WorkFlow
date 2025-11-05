@@ -1,4 +1,4 @@
-import { FC, useState, useRef, useEffect, useContext } from 'react';
+import { FC, useState, useRef, useEffect, useContext, useMemo } from 'react';
 
 import { SideSheet, Button, TextArea, Toast, Tabs, TabPane, Dropdown, Upload, Select, Modal, Pagination } from '@douyinfe/semi-ui';
 import { IconSpin, IconSend, IconPlus, IconHistory, IconEdit, IconUpload } from '@douyinfe/semi-icons';
@@ -22,6 +22,9 @@ interface Conversation {
   id: string;
   title: string;
   messages: ChatMessage[];
+  fileList: any[];
+  flowDocList: any[];
+  workflow_json?: any; // 最新生成的工作流的json
 }
 
 export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel }) => {
@@ -32,11 +35,12 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
   const [conversations, setConversations] = useState<Conversation[]>([{
     id: `conv-${Date.now()}`,
     title: '对话 1',
-    messages: []
+    messages: [],
+    fileList: [],
+    flowDocList: [],
+    workflow_json: undefined
   }]);
   const [currentConversationIndex, setCurrentConversationIndex] = useState<number>(0);
-
-  const [fileList, setFileList] = useState<any[]>([]);
   const [knowledgeBase, setKnowledgeBase] = useState<string>('');
   const [knowledgeBaseOptions, setKnowledgeBaseOptions] = useState<any[]>([]);
   const [kbModalVisible, setKbModalVisible] = useState<boolean>(false);
@@ -46,7 +50,6 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
   const [pageSize] = useState<number>(5);
   const [userId, setUserId] = useState<string>('');
   const [region, setRegion] = useState<string>('');
-  const [codeDescription, setCodeDescription] = useState<string>('');
 
   const clientContext = useClientContext();
   const tools = usePlaygroundTools();
@@ -56,6 +59,8 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
   const codeCanvasData = useRef<any>(null);
   const isFirstCodeTab = useRef<boolean>(true);
   const lastActiveTab = useRef<string>('text'); // Track which tab's canvas is currently displayed
+  // Use ref to store latest conversation index for file change handler
+  const currentConversationIndexRef = useRef<number>(0);
 
   // Fetch user info from agentId
   const fetchUserInfo = async () => {
@@ -84,6 +89,19 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
 
   const currentConversation = conversations[currentConversationIndex];
   const chatHistory = currentConversation?.messages || [];
+  // Use useMemo to ensure fileList returns a new array reference when conversation changes
+  const fileList = useMemo(() => {
+    return currentConversation?.fileList ? [...currentConversation.fileList] : [];
+  }, [currentConversation?.id, currentConversation?.fileList]);
+  // Use useMemo to ensure flowDocList returns a new array reference when conversation changes
+  const flowDocList = useMemo(() => {
+    return currentConversation?.flowDocList ? [...currentConversation.flowDocList] : [];
+  }, [currentConversation?.id, currentConversation?.flowDocList]);
+
+  // Update ref when conversation index changes
+  useEffect(() => {
+    currentConversationIndexRef.current = currentConversationIndex;
+  }, [currentConversationIndex]);
 
   // 确保事件处理函数正确处理输入
   const handleInputChange = (value: string) => {
@@ -112,7 +130,15 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
       }
     });
     
-    setFileList(uniqueFiles);
+    // Update fileList for current conversation using ref to get latest index
+    const currentIdx = currentConversationIndexRef.current;
+    setConversations(prev => {
+      const next = [...prev];
+      const conv = { ...next[currentIdx] };
+      conv.fileList = uniqueFiles;
+      next[currentIdx] = conv;
+      return next;
+    });
   };
 
 
@@ -166,11 +192,21 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
 
   // 新建对话
   const handleNewConversation = () => {
+    // 检查当前对话是否为空
+    const currentConv = conversations[currentConversationIndex];
+    if (currentConv && currentConv.messages.length === 0) {
+      Toast.info('已是最新对话');
+      return;
+    }
+    
+    // 计算新对话的索引
+    const newIndex = conversations.length;
+    
     setConversations(prev => {
       const idx = prev.length + 1;
-      return [...prev, { id: `conv-${Date.now()}`, title: `对话 ${idx}`, messages: [] }];
+      return [...prev, { id: `conv-${Date.now()}`, title: `对话 ${idx}`, messages: [], fileList: [], flowDocList: [], workflow_json: undefined }];
     });
-    setCurrentConversationIndex(conversations.length);
+    setCurrentConversationIndex(newIndex);
     setInput('');
   };
 
@@ -390,7 +426,8 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
   };
 
   const handleCodeGenerate = async () => {
-    if (fileList.length === 0) {
+    const currentFileList = currentConversation?.fileList || [];
+    if (currentFileList.length === 0) {
       Toast.warning('请上传至少一个文件');
       return;
     }
@@ -400,10 +437,7 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
       // 准备上传的文件数据
       const formData = new FormData();
       formData.append('knowledgeBase', knowledgeBase);
-      if (codeDescription.trim()) {
-        formData.append('description', codeDescription.trim());
-      }
-      fileList.forEach((file) => {
+      currentFileList.forEach((file) => {
         if (file.fileInstance) {
           formData.append('files', file.fileInstance);
         }
@@ -421,7 +455,7 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
       // 检查响应状态和返回的status字段
       if (!response.ok || result.status === 'failed') {
         // 提取错误信息，如果有
-        const errorMessage = result.msg || '生成流程失败';
+        const errorMessage = result.message || '生成流程失败';
         throw new Error(errorMessage);
       }
 
@@ -474,18 +508,23 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
       return;
     }
   
+    // 先保存输入内容，再清空输入框
+    const currentInput = input.trim();
     try {
       setLoading(true);
+      // 立即清空输入框
+      setInput('');
+      
       // 构造即将发送的用户消息与当前会话历史
       const pendingUserMessage: ChatMessage = {
         id: `user-${Date.now()}`,
         role: 'user',
-        content: input.trim(),
+        content: currentInput,
         timestamp: Date.now()
       };
       const historyToSend = [...chatHistory, pendingUserMessage].map(m => ({ role: m.role, content: m.content }));
       // 先本地追加用户消息
-      addUserMessage(input);
+      addUserMessage(currentInput);
       
       // 获取URL中的agentId参数
       const urlParams = new URLSearchParams(window.location.search);
@@ -496,6 +535,9 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
         setLoading(false);
         return;
       }
+
+      // 获取当前对话的最新工作流json作为lastWorkFlow
+      const lastWorkFlow = currentConversation?.workflow_json || null;
   
       // 调用API
       const response = await fetch('/workflow/txt2FlowSchema', {
@@ -505,8 +547,10 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
         },
         body: JSON.stringify({
           agentId,
-          input: input.trim(),
-          history: historyToSend
+          input: currentInput,
+          history: historyToSend,
+          flowDocList, // 新增
+          lastWorkFlow // 传入最新生成的工作流json
         }),
       });
   
@@ -537,11 +581,17 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
       clientContext.document.renderJSON(flowData);
       textCanvasData.current = flowData;
       
+      // 将生成的flowData保存到当前对话的workflow_json字段
+      setConversations(prev => {
+        const next = [...prev];
+        const conv = { ...next[currentConversationIndex] };
+        conv.workflow_json = flowData;
+        next[currentConversationIndex] = conv;
+        return next;
+      });
+      
       // 添加助手消息到对话历史
       addAssistantMessage('流程生成成功！');
-      
-      // 清空输入框
-      setInput('');
       } else {
         throw new Error('API 未返回流程数据');
      }
@@ -606,6 +656,7 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
                   style={{
                     flex: 1,
                     minHeight: '360px',
+                    maxHeight: '400px',
                     overflowY: 'auto',
                     padding: '12px 0',
                     marginBottom: '16px',
@@ -646,16 +697,37 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
                 </div>
               )}
               
+              {/* 文件展示区域 */}
+              {flowDocList.length > 0 && (
+                <div style={{display: 'flex', gap: 12, alignItems: 'center', marginBottom: 8, flexWrap: 'wrap'}}>
+                  {flowDocList.map((file, idx) => (
+                    <div key={file.filepath || idx} style={{display:'flex',alignItems:'center',padding: '2px 8px',background:'#f3f4f6',borderRadius:12,marginRight: 8,height:26}}>
+                      <span style={{maxWidth:120,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:14}} title={file.filename}>{file.filename}</span>
+                      <span onClick={() => {
+                        const currentIdx = currentConversationIndexRef.current;
+                        setConversations(prev => {
+                          const next = [...prev];
+                          const conv = { ...next[currentIdx] };
+                          conv.flowDocList = conv.flowDocList.filter((_, i) => i !== idx);
+                          next[currentIdx] = conv;
+                          return next;
+                        });
+                      }} style={{marginLeft:6,fontSize:14,cursor:'pointer',color:'#888'}}>&times;</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
               {/* 输入区域 */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div style={{ position: 'relative' }}>
                   <TextArea
                     placeholder="请输入流程描述，例如：生成一个带知识库问答的工作流..."
-                    style={{ minHeight: '120px', maxHeight: '200px', paddingBottom: 32 }}
+                    style={{ minHeight: '120px', maxHeight: '150px', paddingBottom: 32 }}
                     value={input}
                     onChange={handleInputChange}
                     autoFocus={activeTab === 'text'}
-                    disabled={false}
+                    disabled={loading}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
                         e.preventDefault();
@@ -664,6 +736,38 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
                     }}
                   />
                   {/* 右下角悬浮按钮：仅叠加在底部，不压缩输入内容宽度 */}
+                  <div style={{ position: 'absolute', right: 40, bottom: 8, display: 'flex', gap: 8 }}>
+                    <Upload
+                      accept='.pdf,.doc,.docx,.txt,.md,.json'
+                      showUploadList={false}
+                      customRequest={async ({file}) => {
+                        const formData = new FormData();
+                        if (file.fileInstance) {
+                          formData.append('file', file.fileInstance);
+                        } else {
+                          Toast.error('文件无效，无法上传');
+                          return;
+                        }
+                        const resp = await fetch('/workflow/uploadDoc', { method: 'POST', body: formData });
+                        const result = await resp.json();
+                        if(result.code === 0 && Array.isArray(result.data)) {
+                          const currentIdx = currentConversationIndexRef.current;
+                          setConversations(prev => {
+                            const next = [...prev];
+                            const conv = { ...next[currentIdx] };
+                            conv.flowDocList = [...conv.flowDocList, ...result.data];
+                            next[currentIdx] = conv;
+                            return next;
+                          });
+                          Toast.success('上传成功');
+                        } else {
+                          Toast.error(result.message || '上传失败');
+                        }
+                      }}
+                    >
+                      <Button icon={<IconUpload />} size='small' aria-label='上传文档' style={{borderRadius: '50%',width:24,height:24}} />
+                    </Upload>
+                  </div>
                   <div style={{ position: 'absolute', right: 8, bottom: 8 }}>
                     <Button
                       onClick={handleGenerate}
@@ -752,25 +856,6 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
             <div style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
               提示：上传代码文件，选择知识库后抽取代码流程
             </div>
-            
-            {/* Optional Description */}
-            <div
-              style={{
-                fontSize: '15px',
-                fontWeight: '500',
-                marginBottom: '10px',
-                color: '#333',
-              }}
-            >
-              流程描述（可选）
-            </div>
-            <TextArea
-              placeholder="请输入对代码流程的描述，有助于抽取更准确的流程..."
-              style={{ height: 100, marginBottom: 16 }}
-              value={codeDescription}
-              onChange={(value) => setCodeDescription(value)}
-            />
-            
             <Button
               onClick={handleCodeGenerate}
               loading={loading}
