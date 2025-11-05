@@ -1,6 +1,6 @@
 import { FC, useState, useRef, useEffect, useContext, useMemo } from 'react';
 
-import { SideSheet, Button, TextArea, Toast, Tabs, TabPane, Dropdown, Upload, Select, Modal, Pagination } from '@douyinfe/semi-ui';
+import { SideSheet, Button, TextArea, Toast, Tabs, TabPane, Dropdown, Upload, Modal, Pagination, Tooltip } from '@douyinfe/semi-ui';
 import { IconSpin, IconSend, IconPlus, IconHistory, IconEdit, IconUpload } from '@douyinfe/semi-icons';
 
 import { useClientContext, usePlaygroundTools } from '@flowgram.ai/free-layout-editor';
@@ -21,7 +21,8 @@ interface ChatMessage {
 interface Conversation {
   id: string;
   title: string;
-  messages: ChatMessage[];
+  textMessages: ChatMessage[]; // Messages for "生成流程" tab
+  codeMessages: ChatMessage[]; // Messages for "抽取流程" tab
   fileList: any[];
   flowDocList: any[];
   workflow_json?: any; // 最新生成的工作流的json
@@ -29,13 +30,15 @@ interface Conversation {
 
 export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel }) => {
   const [input, setInput] = useState<string>('');
+  const [codeInput, setCodeInput] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>('text');
 
   const [conversations, setConversations] = useState<Conversation[]>([{
     id: `conv-${Date.now()}`,
     title: '对话 1',
-    messages: [],
+    textMessages: [],
+    codeMessages: [],
     fileList: [],
     flowDocList: [],
     workflow_json: undefined
@@ -88,7 +91,11 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
   const currentConversation = conversations[currentConversationIndex];
-  const chatHistory = currentConversation?.messages || [];
+  // Get chat history based on active tab
+  const chatHistory = useMemo(() => {
+    if (!currentConversation) return [];
+    return activeTab === 'text' ? currentConversation.textMessages : currentConversation.codeMessages;
+  }, [currentConversation, activeTab]);
   // Use useMemo to ensure fileList returns a new array reference when conversation changes
   const fileList = useMemo(() => {
     return currentConversation?.fileList ? [...currentConversation.fileList] : [];
@@ -143,7 +150,7 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
 
 
   // 添加用户消息到当前会话
-  const addUserMessage = (content: string) => {
+  const addUserMessage = (content: string, tab: 'text' | 'code' = activeTab as 'text' | 'code') => {
     const newMessage: ChatMessage = {
       id: `user-${Date.now()}`,
       role: 'user',
@@ -153,14 +160,18 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
     setConversations(prev => {
       const next = [...prev];
       const conv = { ...next[currentConversationIndex] };
-      conv.messages = [...conv.messages, newMessage];
+      if (tab === 'text') {
+        conv.textMessages = [...conv.textMessages, newMessage];
+      } else {
+        conv.codeMessages = [...conv.codeMessages, newMessage];
+      }
       next[currentConversationIndex] = conv;
       return next;
     });
   };
 
   // 添加助手消息到当前会话
-  const addAssistantMessage = (content: string) => {
+  const addAssistantMessage = (content: string, tab: 'text' | 'code' = activeTab as 'text' | 'code') => {
     const newMessage: ChatMessage = {
       id: `assistant-${Date.now()}`,
       role: 'assistant',
@@ -170,7 +181,11 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
     setConversations(prev => {
       const next = [...prev];
       const conv = { ...next[currentConversationIndex] };
-      conv.messages = [...conv.messages, newMessage];
+      if (tab === 'text') {
+        conv.textMessages = [...conv.textMessages, newMessage];
+      } else {
+        conv.codeMessages = [...conv.codeMessages, newMessage];
+      }
       next[currentConversationIndex] = conv;
       return next;
     });
@@ -194,7 +209,7 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
   const handleNewConversation = () => {
     // 检查当前对话是否为空
     const currentConv = conversations[currentConversationIndex];
-    if (currentConv && currentConv.messages.length === 0) {
+    if (currentConv && currentConv.textMessages.length === 0 && currentConv.codeMessages.length === 0) {
       Toast.info('已是最新对话');
       return;
     }
@@ -204,7 +219,7 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
     
     setConversations(prev => {
       const idx = prev.length + 1;
-      return [...prev, { id: `conv-${Date.now()}`, title: `对话 ${idx}`, messages: [], fileList: [], flowDocList: [], workflow_json: undefined }];
+      return [...prev, { id: `conv-${Date.now()}`, title: `对话 ${idx}`, textMessages: [], codeMessages: [], fileList: [], flowDocList: [], workflow_json: undefined }];
     });
     setCurrentConversationIndex(newIndex);
     setInput('');
@@ -434,9 +449,31 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
     
     try {
       setLoading(true);
+      const trimmedInput = codeInput.trim();
+      const defaultMessage = '上传代码文件进行流程抽取';
+      const messageContent = trimmedInput || defaultMessage;
+      const pendingUserMessage: ChatMessage = {
+        id: `user-${Date.now()}`,
+        role: 'user',
+        content: messageContent,
+        timestamp: Date.now()
+      };
+      const messageToSend = [
+        ...(currentConversation?.codeMessages || []),
+        pendingUserMessage
+      ]
+        .filter(message => message.role === 'user')
+        .map(message => message.content)
+        .filter(content => content !== defaultMessage);
+      if (trimmedInput) {
+        setCodeInput('');
+      }
+      // 先本地追加用户消息
+      addUserMessage(messageContent, 'code');
       // 准备上传的文件数据
       const formData = new FormData();
       formData.append('knowledgeBase', knowledgeBase);
+      formData.append('message', JSON.stringify(messageToSend));
       currentFileList.forEach((file) => {
         if (file.fileInstance) {
           formData.append('files', file.fileInstance);
@@ -454,9 +491,9 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
 
       // 检查响应状态和返回的status字段
       if (!response.ok || result.status === 'failed') {
-        // 提取错误信息，如果有
-        const errorMessage = result.message || '生成流程失败';
-        throw new Error(errorMessage);
+        const errorMessage = result.msg || '抽取流程失败';
+        addAssistantMessage(`抽取流程失败：${errorMessage}`, 'code');
+        return;
       }
 
       // 检查是否有返回的流程数据
@@ -488,6 +525,9 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
         // 自动布局
         await tools.autoLayout();
         
+        // 添加助手消息到对话历史
+        addAssistantMessage('抽取流程成功！', 'code');
+        
         Toast.success('抽取流程成功');
       } else {
         throw new Error('API 未返回流程数据');
@@ -496,6 +536,7 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
       console.error('抽取流程出错:', error);
       // 显示错误信息，如果是Error对象则显示其message
       const errorMessage = error instanceof Error ? error.message : '抽取流程失败，请重试';
+      addAssistantMessage(`抽取流程失败：${errorMessage}`, 'code');
       Toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -524,7 +565,7 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
       };
       const historyToSend = [...chatHistory, pendingUserMessage].map(m => ({ role: m.role, content: m.content }));
       // 先本地追加用户消息
-      addUserMessage(currentInput);
+      addUserMessage(currentInput, 'text');
       
       // 获取URL中的agentId参数
       const urlParams = new URLSearchParams(window.location.search);
@@ -591,7 +632,7 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
       });
       
       // 添加助手消息到对话历史
-      addAssistantMessage('流程生成成功！');
+      addAssistantMessage('流程生成成功！', 'text');
       } else {
         throw new Error('API 未返回流程数据');
      }
@@ -654,16 +695,14 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
                 <div
                   ref={chatScrollRef}
                   style={{
-                    flex: 1,
-                    minHeight: '360px',
-                    maxHeight: '400px',
+                    height: '400px',
+                    flex: '0 0 auto',
                     overflowY: 'auto',
                     padding: '12px 0',
                     marginBottom: '16px',
                     border: '1px solid #e8e8e8',
                     borderRadius: '8px',
                     backgroundColor: '#fafafa',
-                    
                   }}
                 >
                   {chatHistory.map((message) => (
@@ -791,85 +830,255 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
             </div>
           </TabPane>
           <TabPane tab="抽取流程" itemKey="code">
-            {/* Knowledge Base Selector */}
-            <div
-              style={{
-                fontSize: '15px',
-                fontWeight: '500',
-                marginBottom: '10px',
-                color: '#333',
-              }}
-            >
-              知识库
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 24 }}>
-              <Select
-                placeholder="请选择知识库"
-                style={{ flex: 1 }}
-                value={knowledgeBase}
-                onChange={(value) => setKnowledgeBase(value as string)}
-                optionList={knowledgeBaseOptions}
-              />
-              {knowledgeBase && (
-                <Button
-                  icon={<IconEdit />}
-                  onClick={handleEditKnowledgeBase}
+            <div style={{ display: 'flex', flexDirection: 'column', height: '100%', flex: 1, minHeight: 0 }}>
+              {/* 顶部工具栏：历史对话选择与新对话 */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '8px', gap: '8px' }}>
+                <Dropdown
+                  trigger={'click'}
+                  position={'bottomRight'}
+                  render={
+                    <Dropdown.Menu>
+                      {conversations.map((c, idx) => (
+                        <Dropdown.Item
+                          key={c.id}
+                          onClick={() => setCurrentConversationIndex(idx)}
+                          selected={idx === currentConversationIndex}
+                        >
+                          {c.title}
+                        </Dropdown.Item>
+                      ))}
+                    </Dropdown.Menu>
+                  }
+                >
+                  <Button size="small" icon={<IconHistory />} aria-label="历史对话" />
+                </Dropdown>
+                <Button size="small" icon={<IconPlus />} aria-label="新对话" onClick={handleNewConversation} />
+              </div>
+
+              {/* 对话历史区域：仅在有消息时显示 */}
+              {chatHistory.length > 0 && (
+                <div
+                  ref={chatScrollRef}
                   style={{
-                    borderRadius: '4px',
+                    flex: 1,
+                    minHeight: '360px',
+                    maxHeight: '400px',
+                    overflowY: 'auto',
+                    padding: '12px 0',
+                    marginBottom: '16px',
+                    border: '1px solid #e8e8e8',
+                    borderRadius: '8px',
+                    backgroundColor: '#fafafa',
+                    
                   }}
                 >
-                  编辑
-                </Button>
+                  {chatHistory.map((message) => (
+                    <div
+                      key={message.id}
+                      style={{
+                        marginBottom: '12px',
+                        padding: '0 16px',
+                        display: 'flex',
+                        flexDirection: message.role === 'user' ? 'row-reverse' : 'row',
+                        alignItems: 'flex-start'
+                      }}
+                    >
+                      <div
+                        style={{
+                          maxWidth: '80%',
+                          padding: '8px 12px',
+                          borderRadius: '12px',
+                          backgroundColor: message.role === 'user' ? 'rgba(77, 83, 232, 1)' : '#fff',
+                          color: message.role === 'user' ? '#fff' : '#333',
+                          fontSize: '14px',
+                          lineHeight: '1.4',
+                          wordBreak: 'break-word',
+                          whiteSpace: 'pre-wrap',
+                          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)'
+                        }}
+                      >
+                        {message.content}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
-            </div>
 
-            {/* File Upload */}
-            <div
-              style={{
-                fontSize: '15px',
-                fontWeight: '500',
-                marginBottom: '10px',
-                color: '#333',
-              }}
-            >
-              上传代码
+              {/* 上传文件信息提示 */}
+              {fileList.length > 0 && (
+                <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Tooltip
+                    position="topRight"
+                    trigger="hover"
+                    content={
+                      <div
+                        style={{
+                          maxWidth: 260,
+                          maxHeight: 200,
+                          overflowY: 'auto',
+                          paddingRight: 4,
+                          scrollbarWidth: 'thin',
+                          scrollbarColor: 'rgba(77, 83, 232, 0.85) transparent'
+                        }}
+                      >
+                        {fileList.map((file, idx) => {
+                          const fileName = file.name || file.fileInstance?.name || file.url || `文件${idx + 1}`;
+                          return (
+                            <div
+                              key={file.uid || fileName || idx}
+                              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6, gap: 8 }}
+                            >
+                              <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={fileName}>
+                                {fileName}
+                              </span>
+                              <span
+                                onClick={() => {
+                                  const currentIdx = currentConversationIndexRef.current;
+                                  setConversations(prev => {
+                                    const next = [...prev];
+                                    const conv = { ...next[currentIdx] };
+                                    conv.fileList = conv.fileList.filter((_, fileIdx) => fileIdx !== idx);
+                                    next[currentIdx] = conv;
+                                    return next;
+                                  });
+                                }}
+                                style={{ cursor: 'pointer', color: '#888', fontSize: 14 }}
+                              >
+                                &times;
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    }
+                  >
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        fontSize: 13,
+                        color: '#4d53e8',
+                        backgroundColor: 'rgba(77, 83, 232, 0.08)',
+                        borderRadius: 16,
+                        padding: '4px 12px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      已选择代码文件 {fileList.length} 个
+                    </span>
+                  </Tooltip>
+                </div>
+              )}
+
+
+              {/* 输入区域 */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: 'auto' }}>
+                <div style={{ position: 'relative' }}>
+                  <TextArea
+                    placeholder="请输入代码描述或上传代码文件..."
+                    style={{ minHeight: '120px', maxHeight: '150px', paddingBottom: 32 }}
+                    value={codeInput}
+                    onChange={(value) => setCodeInput(value)}
+                    autoFocus={activeTab === 'code'}
+                    disabled={loading}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                        e.preventDefault();
+                        handleCodeGenerate();
+                      }
+                    }}
+                  />
+                  {/* 右下角悬浮按钮：仅叠加在底部，不压缩输入内容宽度 */}
+                  <div style={{ position: 'absolute', right: 8, bottom: 8, display: 'flex', gap: 8, alignItems: 'center' }}>
+                    {/* 知识库选择按钮 */}
+                    <Dropdown
+                      trigger={'click'}
+                      position={'topRight'}
+                      render={
+                        <Dropdown.Menu>
+                          {knowledgeBaseOptions.map((option) => (
+                            <Dropdown.Item
+                              key={option.value || 'empty'}
+                              onClick={() => setKnowledgeBase(option.value)}
+                              selected={knowledgeBase === option.value}
+                            >
+                              {option.label}
+                            </Dropdown.Item>
+                          ))}
+                        </Dropdown.Menu>
+                      }
+                    >
+                      <Button 
+                        size='small' 
+                        aria-label='选择知识库'
+                        style={{
+                          borderRadius: '50%',
+                          width: 24,
+                          height: 24,
+                          fontSize: '12px',
+                          padding: 0
+                        }}
+                      >
+                        KB
+                      </Button>
+                    </Dropdown>
+                    
+                    {/* 编辑知识库按钮（仅在选择知识库后显示） */}
+                    {knowledgeBase && (
+                      <Tooltip
+                        position="topRight"
+                        content={
+                          knowledgeBaseOptions.find(option => option.value === knowledgeBase)?.label || '编辑已选知识库'
+                        }
+                      >
+                        <Button
+                          icon={<IconEdit />}
+                          onClick={handleEditKnowledgeBase}
+                          size='small'
+                          aria-label='编辑知识库'
+                          style={{
+                            borderRadius: '50%',
+                            width: 24,
+                            height: 24
+                          }}
+                        />
+                      </Tooltip>
+                    )}
+                    
+                    {/* 上传代码按钮 */}
+                    <Upload
+                      multiple
+                      fileList={[]}
+                      onChange={handleFileChange}
+                      beforeUpload={() => false}
+                      accept=".js,.jsx,.ts,.tsx,.py,.java,.cpp,.c,.h,.hpp,.cs,.php,.rb,.go,.rs,.swift,.kt,.scala,.js,.jsx,.sh,.bash,.bat,.yml,.yaml,.json,.xml,.html,.css,.vue,.jsx,.tsx,.sql,.md,.txt"
+                      showUploadList={false}
+                    >
+                      <Button icon={<IconUpload />} size='small' aria-label='上传代码' style={{borderRadius: '50%',width:24,height:24}} />
+                    </Upload>
+                    
+                    {/* 抽取流程按钮 */}
+                    <Button
+                      onClick={handleCodeGenerate}
+                      disabled={loading}
+                      icon={loading ? <IconSpin spin /> : <IconSend />}
+                      theme="solid"
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: '50%',
+                        backgroundColor: 'rgba(77, 83, 232, 1)'
+                      }}
+                      aria-label="抽取流程"
+                    />
+                  </div>
+                </div>
+                <div style={{ fontSize: 12, color: '#666' }}>
+                  提示：上传代码文件，选择知识库后抽取代码流程
+                </div>
+              </div>
             </div>
-            <div style={{ marginBottom: 16 }}>
-              <Upload
-                multiple
-                fileList={fileList}
-                onChange={handleFileChange}
-                beforeUpload={() => false}
-                accept=".js,.jsx,.ts,.tsx,.py,.java,.cpp,.c,.h,.hpp,.cs,.php,.rb,.go,.rs,.swift,.kt,.scala,.js,.jsx,.sh,.bash,.bat,.yml,.yaml,.json,.xml,.html,.css,.vue,.jsx,.tsx,.sql,.md,.txt"
-                draggable
-                dragMainText="点击上传文件或拖拽文件到这里"
-                dragSubText="支持上传代码文件（.js, .py, .java, .ts, .go 等）"
-                className="custom-upload-file-list"
-              />
-              <style>{`
-                .custom-upload-file-list .semi-upload-file-list {
-                  max-height: 200px;
-                  overflow-y: auto;
-                }
-              `}</style>
-            </div>
-            <div style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>
-              提示：上传代码文件，选择知识库后抽取代码流程
-            </div>
-            <Button
-              onClick={handleCodeGenerate}
-              loading={loading}
-              icon={loading ? <IconSpin spin size="small" /> : null}
-              style={{
-                backgroundColor: 'rgba(77, 83, 232, 1)',
-                borderRadius: '8px',
-                color: '#fff',
-                width: '100%',
-                height: '40px',
-              }}
-            >
-              抽取流程
-            </Button>
           </TabPane>
         </Tabs>
       </div>
