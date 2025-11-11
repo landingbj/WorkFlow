@@ -976,7 +976,7 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: 'auto' }}>
                 <div style={{ position: 'relative' }}>
                   <TextArea
-                    placeholder="请输入代码描述或上传代码文件..."
+                    placeholder="请输入相关代码描述以便更好地抽取流程（可选）"
                     style={{ minHeight: '120px', maxHeight: '150px', paddingBottom: 32 }}
                     value={codeInput}
                     onChange={(value) => setCodeInput(value)}
@@ -1075,7 +1075,7 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
                   </div>
                 </div>
                 <div style={{ fontSize: 12, color: '#666' }}>
-                  提示：上传代码文件，选择知识库后抽取代码流程
+                  提示：上传代码文件，同时可以选择知识库，然后进行代码流程抽取
                 </div>
               </div>
             </div>
