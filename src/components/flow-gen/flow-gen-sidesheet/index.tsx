@@ -577,8 +577,11 @@ export const FlowGenSideSheet: FC<FlowGenSideSheetProps> = ({ visible, onCancel 
         return;
       }
 
-      // 获取当前对话的最新工作流json作为lastWorkFlow
-      const lastWorkFlow = currentConversation?.workflow_json || null;
+      // 确保 textCanvasData 与当前画布保持同步
+      textCanvasData.current = clientContext.document.toJSON();
+      // 获取当前画布的最新工作流json作为lastWorkFlow
+      const lastWorkFlow = textCanvasData.current || null;
+      console.log('lastWorkFlow', lastWorkFlow);
   
       // 调用API
       const response = await fetch('/workflow/txt2FlowSchema', {
